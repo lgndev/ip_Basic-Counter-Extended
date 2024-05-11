@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 const App = () => {
   const [count, setCount] = useState(0);
   const [error, setError] = useState("");
+  const countInputRef = useRef(null);
 
   // - add or subtract value from count
   const countHandler = (operator = "+") => {
@@ -31,6 +32,19 @@ const App = () => {
     setCount(0);
   };
 
+  // - handle updating count via onChange event on input
+  const countChangeHandler = (inputRef, e) => {
+    if (inputRef.current.validity.rangeUnderflow) {
+      setCount(0);
+      throw new Error("min value 0");
+    } else if (inputRef.current.validity.rangeOverflow) {
+      setCount(10);
+      throw new Error("max value 10");
+    } else {
+      setCount(e.target.value);
+    }
+  };
+
   return (
     <>
       <div>
@@ -53,7 +67,21 @@ const App = () => {
           >
             -
           </button>
-          <p>{count}</p>
+          <input
+            ref={countInputRef}
+            type="number"
+            value={count}
+            min="0"
+            max="10"
+            onChange={(e) => {
+              try {
+                setError("");
+                countChangeHandler(countInputRef, e);
+              } catch (error: any) {
+                setError(error.message);
+              }
+            }}
+          />
           <button
             style={{ margin: "0 10px" }}
             onClick={() => {
